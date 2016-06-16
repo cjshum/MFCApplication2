@@ -40,4 +40,5 @@ public:
 	CString m_password;
 	CStatic m_login;
 	CString m_dbpath;
+	CString m_odbc_dsn;
 };

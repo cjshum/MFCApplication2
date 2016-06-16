@@ -24,6 +24,7 @@ CMFCApplication2Dlg::CMFCApplication2Dlg(CWnd* pParent /*=NULL*/)
 	, m_username(_T("cj"))
 	, m_password(_T("pass1"))
 	, m_dbpath(_T("d:\\test.accdb"))
+	, m_odbc_dsn(_T("try"))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -36,6 +37,7 @@ void CMFCApplication2Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, EDIT_PASSWORD, m_password);
 	DDX_Control(pDX, TEXT_LOGIN, m_login);
 	DDX_Text(pDX, EDIT_DBPATH, m_dbpath);
+	DDX_Text(pDX, EDIT_ODBCDSN, m_odbc_dsn);
 }
 
 BEGIN_MESSAGE_MAP(CMFCApplication2Dlg, CDialogEx)
@@ -102,7 +104,6 @@ void CMFCApplication2Dlg::OnBnClickedButton1() {
 	const CString driver = L"Microsoft Access Driver (*.mdb, *.accdb)";
 	const CString dbFile = m_dbpath;
 	CString dataSourceName;
-	dataSourceName.Format(L"ODBC;DRIVER={%s};DSN='';DBQ=%s", driver, dbFile);
 	
 	CDatabase database;
 	CString sqlStatement;
@@ -110,48 +111,45 @@ void CMFCApplication2Dlg::OnBnClickedButton1() {
 	UpdateData(TRUE);
 
 	// makes sure that fields are not empty
-	if (m_username.IsEmpty() || m_password.IsEmpty() || m_dbpath.IsEmpty()) return;
+	if (m_username.IsEmpty() || m_password.IsEmpty()) return;
 
 	try {
 		// tries to open the database
-		bool sucessful = (0 != database.Open(NULL, false, false, dataSourceName));
-		if (!sucessful) return;
-
+		bool successful = false;
+		if (m_odbc_dsn.IsEmpty()) {
+			dataSourceName.Format(L"ODBC;DRIVER={%s};DSN='';DBQ=%s", driver, dbFile);
+			successful = (0 != database.Open(NULL, false, false, dataSourceName));
+		}
+		else {
+			dataSourceName.Format(L"ODBC;UID=%s", m_username);
+			successful = (0 != database.Open(m_odbc_dsn, false, false, dataSourceName));
+			if (!successful) MessageBox(L"Damn it");
+		}
+		if (!successful) {
+			m_login.SetWindowTextW(L"Failed \:(");
+			return;
+		}
+		
 		// set up variables
 		sqlStatement.Format(L"SELECT * FROM users WHERE username='%s' AND password='%s';",
 			m_username, m_password);
 		CRecordset recordSet(&database);
 
 		// tries to query
-		sucessful = (0 != recordSet.Open
+		successful = (0 != recordSet.Open
 			(CRecordset::forwardOnly, sqlStatement, CRecordset::readOnly));
-		if (!sucessful) return;
+		if (!successful) return;
 
 		// check query results
 		if (recordSet.GetRecordCount() == 1) {
 			m_login.SetWindowTextW(L"Sucess!");
 		}
 		else {
-			m_login.SetWindowTextW(L"Failed :(");
+			m_login.SetWindowTextW(L"Failed \:(");
 		}
 
 		database.Close();
 	}catch(CDBException& e) {
 		AfxMessageBox(L"Database error: " + e.m_strError);
-	}
-}
-
-// Reset List control
-void CMFCApplication2Dlg::ResetListControl() {
-	m_listControl.DeleteAllItems();
-	int iNbrOfColumns;
-	CHeaderCtrl* pHeader = (CHeaderCtrl*)m_listControl.GetDlgItem(0);
-	if (pHeader != NULL) {
-		TRACE(L"It got past this place\n");
-		iNbrOfColumns = pHeader->GetItemCount();
-		
-		for (int i = iNbrOfColumns; i >= 0; i--) {
-			m_listControl.DeleteColumn(i);
-		}
 	}
 }
