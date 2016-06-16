@@ -205,7 +205,7 @@
     <ResourceCompile Include="MFCApplication2.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="D:\Test.accdb" />
+    <None Include="..\Test.accdb" />
     <None Include="res\MFCApplication2.rc2" />
   </ItemGroup>
   <ItemGroup>

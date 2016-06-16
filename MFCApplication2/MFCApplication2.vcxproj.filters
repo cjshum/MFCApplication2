@@ -54,7 +54,7 @@
     <None Include="res\MFCApplication2.rc2">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="D:\Test.accdb" />
+    <None Include="..\Test.accdb" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\MFCApplication2.ico">
