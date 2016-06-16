@@ -131,7 +131,7 @@ void CMFCApplication2Dlg::OnBnClickedButton1() {
 		if (recordSet.GetRecordCount() == 1) {
 			m_login.SetWindowTextW(L"Sucess!");
 		}
-		else {
+		else {s
 			m_login.SetWindowTextW(L"Failed :(");
 		}
 
